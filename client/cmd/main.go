@@ -18,19 +18,20 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	client := pb.NewServiceClient(conn)
+
 	for {
-		client := pb.NewServiceClient(conn)
 		request := &pb.RegisterRequest{
-			Id:    uint64(3),
-			Token: "dasdasdasdas12easdas",
+			Id:       uint64(3),
+			Workerid: c.Hostname,
+			Token:    c.JWTSecretKey,
 		}
-		ctx := context.Background()
-		response, err := client.RegisterWorker(ctx, request)
+
+		res, err := client.RegisterWorker(context.Background(), request)
 		if err != nil {
 			panic(err)
 		}
-		fmt.Println(response.Message)
-		fmt.Println(response.Status)
+		fmt.Println(res.Status, res.Message)
 		time.Sleep(time.Second * 5)
 	}
 

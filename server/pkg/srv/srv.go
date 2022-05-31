@@ -23,6 +23,16 @@ type Server struct {
 func (s *Server) RegisterWorker(ctx context.Context, request *pb.RegisterRequest) (response *pb.RegisterResponse, err error) {
 	var worker models.Worker
 
+	token := request.GetToken()
+
+	if token != s.C.JWTSecretKey {
+		log.Error().Msg(fmt.Sprintf("Validation token for worker ID: %v does not match.", request.Id))
+		return &pb.RegisterResponse{
+			Status:  http.StatusForbidden,
+			Message: fmt.Sprintf("Validation token for ID: %v does not match.", request.Id),
+		}, nil
+	}
+
 	if result := s.H.DB.Where(&models.Worker{Id: int64(request.Id)}).First(&worker); result.Error == nil {
 		return &pb.RegisterResponse{
 			Status:  http.StatusConflict,
@@ -31,6 +41,7 @@ func (s *Server) RegisterWorker(ctx context.Context, request *pb.RegisterRequest
 	}
 
 	worker.Id = int64(request.Id)
+	worker.Workerid = request.Workerid
 	worker.Token = utils.HashPassword(request.Token)
 
 	s.H.DB.Create(&worker)
@@ -39,12 +50,5 @@ func (s *Server) RegisterWorker(ctx context.Context, request *pb.RegisterRequest
 	return &pb.RegisterResponse{
 		Status:  http.StatusCreated,
 		Message: fmt.Sprintf("Worker with ID: %d has been registered.", request.Id),
-	}, nil
-}
-
-func (s *Server) ValidateAuth(ctx context.Context, request *pb.AuthRequest) (response *pb.AuthResponse, err error) {
-	token := request.GetToken()
-	return &pb.AuthResponse{
-		Message: token,
 	}, nil
 }
