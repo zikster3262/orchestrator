@@ -1,9 +1,20 @@
 version: '3.1'
 
 services:
+  postgres:
+    container_name: postgres
+    image: postgres:14.2-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - ./database/migration/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
 
   server:
-    build: 
+    build:
       context: ./server
     container_name: server
     restart: always
@@ -11,15 +22,18 @@ services:
       - 50051:50051
     environment:
       - PORT=:50051
-
-  # auth-svc:
-  #   build: 
-  #     context: ./auth-svc
-  #   container_name: auth-svc
-  #   restart: always
-  #   ports:
-  #     - 50051:50051
-
-
-
-
+      - DB_URL=postgresql://root:postgres@postgres:5432/postgres?sslmode=disable
+      - JWT_SECRET_KEY=YcCMt4wdlQbEWiEqXuxqeR1b9EZu4ck9jkmopol292D2DAOSDrhMhuMkmTft3lQB
+    depends_on:
+      - postgres
+  
+  client:
+    build:
+      context: ./client
+    container_name: client
+    restart: always
+    environment:
+      - JWT_SECRET_KEY=YcCMt4wdlQbEWiEqXuxqeR1b9EZu4ck9jkmopol292D2DAOSDrhMhuMkmTft3lQB
+      - GRPC_SERVER=server:50051
+    depends_on:
+      - server

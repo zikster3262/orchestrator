@@ -15,8 +15,8 @@ func main() {
 	}
 	client := pb.NewServiceClient(conn)
 	request := &pb.RegisterRequest{
-		Message: "Ping me",
-		Id:      uint64(20),
+		Id:    uint64(3),
+		Token: "dasdasdasdas12easdas",
 	}
 	ctx := context.Background()
 	response, err := client.RegisterWorker(ctx, request)

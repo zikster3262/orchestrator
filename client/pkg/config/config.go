@@ -3,14 +3,14 @@ package config
 import "os"
 
 type Config struct {
-	Port         string `mapstructure:"PORT"`
+	Server       string `mapstructure:"PORT"`
 	JWTSecretKey string `mapstructure:"JWT_SECRET_KEY"`
 }
 
 func LoadConfig() (c Config) {
-	port := os.Getenv("PORT")
+	server := os.Getenv("GRPC_SERVER")
 	jwt := os.Getenv("JWT_SECRET_KEY")
 
-	cfg := &Config{Port: port, JWTSecretKey: jwt}
+	cfg := &Config{Server: server, JWTSecretKey: jwt}
 	return *cfg
 }
