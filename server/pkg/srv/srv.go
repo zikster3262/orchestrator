@@ -23,32 +23,47 @@ type Server struct {
 func (s *Server) RegisterWorker(ctx context.Context, request *pb.RegisterRequest) (response *pb.RegisterResponse, err error) {
 	var worker models.Worker
 
-	token := request.GetToken()
-
-	if token != s.C.JWTSecretKey {
-		log.Error().Msg(fmt.Sprintf("Validation token for worker ID: %v does not match.", request.Id))
-		return &pb.RegisterResponse{
-			Status:  http.StatusForbidden,
-			Message: fmt.Sprintf("Validation token for ID: %v does not match.", request.Id),
-		}, nil
-	}
-
-	if result := s.H.DB.Where(&models.Worker{Id: int64(request.Id)}).First(&worker); result.Error == nil {
+	if result := s.H.DB.Where(&models.Worker{Id: request.Id}).First(&worker); result.Error == nil {
 		return &pb.RegisterResponse{
 			Status:  http.StatusConflict,
 			Message: fmt.Sprintf("Worker exists with ID %v exists.", request.Id),
 		}, nil
 	}
 
-	worker.Id = int64(request.Id)
+	worker.Id = request.Id
 	worker.Workerid = request.Workerid
-	worker.Token = utils.HashPassword(request.Token)
 
 	s.H.DB.Create(&worker)
-	log.Info().Msg(fmt.Sprintf("Worker with ID: %d has been created and was saved to database.", request.Id))
+	log.Info().Msg(fmt.Sprintf("Worker with ID: %v has been created and was saved to database.", request.Id))
 
 	return &pb.RegisterResponse{
 		Status:  http.StatusCreated,
-		Message: fmt.Sprintf("Worker with ID: %d has been registered.", request.Id),
+		Message: fmt.Sprintf("Worker with ID: %v has been registered.", request.Id),
+	}, nil
+}
+
+func (s *Server) Validate(ctx context.Context, request *pb.ValidateRequest) (response *pb.ValidateResponse, err error) {
+	var worker models.Worker
+
+	claims, err := s.Jwt.ValidateToken(request.Token)
+	if err != nil {
+		return &pb.ValidateResponse{
+			Status: http.StatusBadRequest,
+			Error:  err.Error(),
+		}, nil
+	}
+
+	if result := s.H.DB.Where(&models.Worker{Id: claims.Id}).First(&worker); result.Error != nil {
+		return &pb.ValidateResponse{
+			Status: http.StatusNotFound,
+			Error:  "Worker not found",
+		}, nil
+	}
+
+	log.Info().Str("client", worker.Workerid).Msg("Authorized.")
+
+	return &pb.ValidateResponse{
+		Status:   http.StatusOK,
+		WorkerId: worker.Workerid,
 	}, nil
 }

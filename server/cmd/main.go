@@ -3,6 +3,7 @@ package main
 import (
 	"net"
 
+	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 	cfg "github.com/zikster3262/orchestrator-server/pkg/config"
 	"github.com/zikster3262/orchestrator-server/pkg/db"
@@ -42,4 +43,7 @@ func main() {
 
 	log.Info().Msg("GRPC server has been started.")
 
+	r := gin.Default()
+
+	r.Run(":8080")
 }

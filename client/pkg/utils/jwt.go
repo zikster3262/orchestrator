@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
-	"github.com/zikster3262/orchestrator-server/pkg/models"
+	"github.com/zikster3262/orchestrator-client/pkg/models"
 )
 
 type JwtWrapper struct {
@@ -16,12 +16,12 @@ type JwtWrapper struct {
 
 type jwtClaims struct {
 	jwt.StandardClaims
-	Id string
+	WorkerId string
 }
 
 func (w *JwtWrapper) GenerateToken(worker models.Worker) (signedToken string, err error) {
 	claims := &jwtClaims{
-		Id: worker.Id,
+		WorkerId: worker.Workerid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(w.ExpirationHours)).Unix(),
 			Issuer:    w.Issuer,

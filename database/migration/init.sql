@@ -1,4 +1,5 @@
-CREATE DATABASE workers;
-
-
-
+CREATE TABLE workers(
+  ID TEXT     NOT NULL,
+  WORKERID TEXT     NOT NULL,
+  TOKEN TEXT
+)

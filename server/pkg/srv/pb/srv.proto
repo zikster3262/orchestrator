@@ -5,9 +5,8 @@ package srv;
 option go_package = "./pkg/srv/pb";
 
 message RegisterRequest {
-    uint64 id = 1;
+    string id = 1;
     string workerid = 2;
-    string token = 3;
 }
 
 message RegisterResponse {
@@ -15,6 +14,18 @@ message RegisterResponse {
     string message = 2;
 }
 
+message ValidateRequest {
+    string id = 1;
+    string token = 2;
+}
+
+message ValidateResponse {
+  int64 status = 1;
+  string error = 2;
+  string workerId = 3;
+}
+
 service Service {
     rpc RegisterWorker(RegisterRequest) returns (RegisterResponse);
+    rpc Validate(ValidateRequest) returns (ValidateResponse);
 }
